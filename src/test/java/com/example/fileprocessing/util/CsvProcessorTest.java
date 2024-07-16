@@ -1,50 +1,65 @@
 package com.example.fileprocessing.util;
 
 import com.example.fileprocessing.model.ProcessedData;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.io.*;
 import java.util.List;
 
-class CsvProcessorTest {
+import static org.junit.jupiter.api.Assertions.*;
 
-    @Test
-    void testProcessCsvValidData() {
-        String csvData = "name,age\nJohn,30\nJane,25";
-        InputStream inputStream = new ByteArrayInputStream(csvData.getBytes());
+@ExtendWith(MockitoExtension.class)
+public class CsvProcessorTest {
 
-        List<ProcessedData> results = CsvProcessor.processCsv(inputStream);
+    private File inputCsvFile;
+    private File outputCsvFile;
 
-        assertNotNull(results);
-        assertEquals(2, results.size());
-        assertEquals("John", results.get(0).getName());
-        assertEquals(30, results.get(0).getAge());
-        assertEquals("Jane", results.get(1).getName());
-        assertEquals(25, results.get(1).getAge());
+    @BeforeEach
+    public void setUp() throws IOException {
+        inputCsvFile = File.createTempFile("input", ".csv");
+        outputCsvFile = File.createTempFile("output", ".csv");
+
+        try (FileWriter writer = new FileWriter(inputCsvFile)) {
+            writer.write("name,age\nJohn,30\nJane,25");
+        }
     }
 
     @Test
-    void testProcessCsvWithFiles() throws Exception {
-        File inputFile = File.createTempFile("test", ".csv");
-        try (FileWriter writer = new FileWriter(inputFile)) {
-            writer.write("name,age\nJohn,30\nJane,25");
+    public void testProcessCsv() throws IOException {
+        List<ProcessedData> processedData = CsvProcessor.processCsv(inputCsvFile, outputCsvFile);
+        assertNotNull(processedData);
+        assertEquals(2, processedData.size());
+        assertEquals("John", processedData.get(0).getName());
+        assertEquals(30, processedData.get(0).getAge());
+        assertEquals("Jane", processedData.get(1).getName());
+        assertEquals(25, processedData.get(1).getAge());
+
+        // Verify the output file content
+        try (BufferedReader reader = new BufferedReader(new FileReader(outputCsvFile))) {
+            String header = reader.readLine();
+            String johnData = reader.readLine();
+            String janeData = reader.readLine();
+            assertEquals("\"name\",\"age\"", header);
+            assertEquals("\"John\",\"30\"", johnData);
+            assertEquals("\"Jane\",\"25\"", janeData);
+        }
+    }
+
+    @Test
+    public void testProcessCsvMalformedData() throws IOException {
+        // Create malformed CSV input file
+        File malformedCsvFile = File.createTempFile("malformed", ".csv");
+        try (FileWriter writer = new FileWriter(malformedCsvFile)) {
+            writer.write("name,age\nJohn,thirty\nJane,25");
         }
 
-        File outputFile = File.createTempFile("output", ".csv");
-
-        List<ProcessedData> results = CsvProcessor.processCsv(inputFile, outputFile);
-
-        assertNotNull(results);
-        assertEquals(2, results.size());
-        assertEquals("John", results.get(0).getName());
-        assertEquals(30, results.get(0).getAge());
-        assertEquals("Jane", results.get(1).getName());
-        assertEquals(25, results.get(1).getAge());
-
-        inputFile.deleteOnExit();
-        outputFile.deleteOnExit();
+        // Expecting an exception to be thrown
+        Exception exception = assertThrows(IOException.class, () -> {
+            CsvProcessor.processCsv(malformedCsvFile, outputCsvFile);
+        });
+        assertTrue(exception.getMessage().contains("For input string: \"thirty\""));
     }
 }

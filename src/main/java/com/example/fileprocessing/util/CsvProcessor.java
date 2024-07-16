@@ -1,37 +1,39 @@
 package com.example.fileprocessing.util;
 
 import com.example.fileprocessing.model.ProcessedData;
+import com.opencsv.CSVWriter;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CsvProcessor {
 
-    public static List<ProcessedData> processCsv(InputStream inputStream) {
-        List<ProcessedData> processedDataList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            // Skip header line
-            reader.readLine();
+    public static List<ProcessedData> processCsv(File inputFile, File outputFile) throws IOException {
+        List<ProcessedData> processedData = new ArrayList<>();
 
-            processedDataList = reader.lines()
-                    .map(line -> {
-                        String[] fields = line.split(",");
-                        return new ProcessedData(fields[0], Integer.parseInt(fields[1]));
-                    })
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing CSV", e);
-        }
-        return processedDataList;
-    }
+        // Reading and processing the CSV file
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+             CSVWriter writer = new CSVWriter(new FileWriter(outputFile))) {
 
-    public static List<ProcessedData> processCsv(File inputFile, File outputFile) {
-        try (InputStream inputStream = new FileInputStream(inputFile)) {
-            return processCsv(inputStream);
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing CSV files", e);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!data[0].equals("name")) { // Skip the header
+                    try {
+                        String name = data[0];
+                        int age = Integer.parseInt(data[1]);
+                        processedData.add(new ProcessedData(name, age));
+                        writer.writeNext(new String[]{name, String.valueOf(age)});
+                    } catch (NumberFormatException e) {
+                        throw new IOException("For input string: \"" + data[1] + "\"");
+                    }
+                } else {
+                    writer.writeNext(data); // Write header
+                }
+            }
         }
+
+        return processedData;
     }
 }

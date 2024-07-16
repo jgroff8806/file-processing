@@ -1,34 +1,31 @@
 package com.example.fileprocessing.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.fileprocessing.model.ProcessedData;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class JsonProcessor {
 
-    public static List<ProcessedData> processJson(InputStream inputStream) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.readValue(inputStream, new TypeReference<List<ProcessedData>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Error reading JSON input stream", e);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static List<ProcessedData> processJson(File inputFile) throws IOException {
+        // Read and process the JSON file
+        List<ProcessedData> processedData;
+        try (FileInputStream inputStream = new FileInputStream(inputFile)) {
+            processedData = objectMapper.readValue(inputStream, objectMapper.getTypeFactory().constructCollectionType(List.class, ProcessedData.class));
         }
+
+        return processedData;
     }
 
-    // Existing method for File parameters
-    public static void processJson(File inputFile, File outputFile) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try (InputStream inputStream = new FileInputStream(inputFile)) {
-            List<ProcessedData> data = objectMapper.readValue(inputStream, new TypeReference<List<ProcessedData>>() {});
-            // Process and write to outputFile (implementation not shown)
-        } catch (Exception e) {
-            throw new RuntimeException("Error reading JSON file", e);
+    public static void writeJson(List<ProcessedData> processedData, File outputFile) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+            objectMapper.writeValue(outputStream, processedData);
         }
     }
 }
-

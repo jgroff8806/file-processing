@@ -13,8 +13,9 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<spring.boot.version>3.1.2</spring.boot.version>
 		<jackson.version>2.15.2</jackson.version>
-		<junit.jupiter.version>5.10.0</junit.jupiter.version>
-		<mockito.version>5.5.0</mockito.version>
+		<junit.jupiter.version>5.8.1</junit.jupiter.version>
+		<mockito.version>4.3.1</mockito.version>
+		<powermock.version>2.0.9</powermock.version>
 	</properties>
 
 	<dependencyManagement>
@@ -30,6 +31,11 @@
 	</dependencyManagement>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.5.2</version>
+		</dependency>
 		<!-- Spring Boot dependencies -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -68,17 +74,40 @@
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.8.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
+			<version>4.0.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>4.0.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- PowerMockito dependencies for JUnit 4 -->
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -104,6 +133,7 @@
 							<goal>clover</goal>
 							<goal>aggregate</goal>
 						</goals>
+						<phase>test</phase>
 					</execution>
 				</executions>
 				<configuration>

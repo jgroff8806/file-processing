@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>File Processing App</title>
+    <meta charset="UTF-8">
+    <title>File Processing Result</title>
 </head>
 <body>
-<h1>Result</h1>
+<h1>File Processing Result</h1>
 <p th:text="${message}"></p>
-<a href="/">Go back</a>
+<div th:if="${downloadLink}">
+    <a th:href="${downloadLink}">Download Processed File</a>
+</div>
+<button onclick="window.location.href='/'">Go Back</button>
 </body>
 </html>
