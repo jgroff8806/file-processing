@@ -1,6 +1,7 @@
 /target
 *.log
 *.class
+*.csv
 *.jar
 *.war
 *.ear
@@ -9,6 +10,4 @@
 *.iws
 .idea
 .DS_Store
-/test_input.csv
-/test_output.csv
 HELP.md

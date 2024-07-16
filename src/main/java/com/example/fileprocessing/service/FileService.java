@@ -2,8 +2,6 @@ package com.example.fileprocessing.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 public interface FileService {
-    String processFile(MultipartFile file) throws IOException;
+    void processFile(MultipartFile file);
 }

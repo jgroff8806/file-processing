@@ -1,8 +1,6 @@
 package com.example.fileprocessing.service;
 
-import com.example.fileprocessing.exception.FileProcessingException;
 import com.example.fileprocessing.util.CsvProcessor;
-import com.example.fileprocessing.util.JsonProcessor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,26 +12,30 @@ import java.io.IOException;
 public class FileServiceImpl implements FileService {
 
     @Override
-    public String processFile(MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
-        if (fileName == null) {
-            throw new FileProcessingException("File name is null");
-        }
+    public void processFile(MultipartFile file) {
+        try {
+            // Convert MultipartFile to File
+            File tempFile = convertMultipartFileToFile(file);
+            File outputFile = File.createTempFile("output", ".csv");
 
-        File convFile = new File(fileName);
+            // Process the file
+            CsvProcessor.processCsv(tempFile, outputFile);
+
+            // Handle the processed data if needed (e.g., save to database, return to client, etc.)
+
+            // Clean up temporary files
+            tempFile.deleteOnExit();
+            outputFile.deleteOnExit();
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing file", e);
+        }
+    }
+
+    private File convertMultipartFileToFile(MultipartFile file) throws IOException {
+        File convFile = File.createTempFile(file.getOriginalFilename(), ".tmp");
         try (FileOutputStream fos = new FileOutputStream(convFile)) {
             fos.write(file.getBytes());
         }
-
-        String outputFilePath = "output_" + fileName;
-        if (fileName.endsWith(".csv")) {
-            CsvProcessor.processCsv(convFile, new File(outputFilePath));
-        } else if (fileName.endsWith(".json")) {
-            JsonProcessor.processJson(convFile, new File(outputFilePath));
-        } else {
-            throw new FileProcessingException("Unsupported file format");
-        }
-
-        return outputFilePath;
+        return convFile;
     }
 }
